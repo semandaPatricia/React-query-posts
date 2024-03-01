@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation ,QueryClient } from "@tanstack/react-query";
 import { fetchPosts } from "./Query";
 
 const Home = () => {
@@ -8,6 +8,14 @@ const Home = () => {
     queryKey: ["newPosts"],
     queryFn: fetchPosts,
   });
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: Infinity,
+      },
+    },
+  })
 
   const { mutate } = useMutation({
     mutationKey: ["posts"],
@@ -22,8 +30,11 @@ const Home = () => {
       const data = await response.json();
       return data;
     },
+    onSuccess: (newPost) => {
+      queryClient.setQueryData("newPosts", (oldPosts) => [...oldPosts, newPost]);
+    },
   });
-
+  
   if (error) return <div>There was an error!!!!</div>;
 
   if (isLoading) {
